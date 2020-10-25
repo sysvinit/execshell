@@ -79,10 +79,9 @@ int main(int argc, char *argv[]) {
                     exit(estatus);
                 }
             } else {
+                /* it didn't exit normally, so something must be up */
                 errx(1, "command runner process died with signal");
             }
-
-            /* it didn't exit normally, so something must be up */
         }
 
         if (pid == -1) {
