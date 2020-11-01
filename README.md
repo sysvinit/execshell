@@ -60,6 +60,24 @@ The REPL also has rudimentary signal handling, so control-C should hopefully
 deliver `SIGINT` to the foreground process without killing the REPL, however
 this has only had cursory testing.
 
+## Internals
+
+`execshell` is split into two processes, a supervisor parent and a command
+runner process. At startup, the supervisor forks the command runner, and then
+restarts it if it exists with a non-zero exit code. The command runner then
+handles reading input from the terminal, lexing command inputs, and running
+commands in child processes of its own. The parent exits if the child exits
+with a zero exit code, or is terminated by a signal.
+
+The rationale for this split process model is to make the implementation of the
+`self` builtin a little more robust. The command runner executes directly into
+the given command when the `self` token is given, and it's possible that this
+command may not succeed, and might fail to execute back into `execshell`. If
+this were implemented all within a single process, then this could lead
+to typos in commands causing `execshell` to unexpectedly exit, which is
+undesirable. Hence, the supervisor process is used to restart the child process
+when the latter unexpectedly exits with an error.
+
 ## Licence
 
 `execshell` is Copyright (C) 2020 Molly Miller under the ISC licence. Please
